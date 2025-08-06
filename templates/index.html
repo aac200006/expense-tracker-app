@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .special-fields {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff7b7b 0%, #ff9776 100%);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(255, 123, 123, 0.3);
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .transactions-container {
+            grid-column: 1 / -1;
+        }
+
+        .transaction-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .transaction-item {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            align-items: center;
+            gap: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .transaction-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .transaction-icon.food {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .transaction-icon.travel {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+        }
+
+        .transaction-icon.other {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .transaction-details h3 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .transaction-details p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .transaction-amount {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 8px;
+        }
+
+        .statistics {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-item h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            opacity: 0.9;
+        }
+
+        .category-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .category-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .transaction-item {
+                grid-template-columns: auto 1fr;
+                gap: 15px;
+            }
+            
+            .transaction-actions {
+                grid-column: 1 / -1;
+                justify-content: center;
+                margin-top: 10px;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 1001;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        }
+
+        .notification.error {
+            background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-wallet"></i> Expense Tracker</h1>
+            <p>Manage your finances with style and ease</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Add Transaction Form -->
+            <div class="card">
+                <h2><i class="fas fa-plus"></i> Add Transaction</h2>
+                <form id="transactionForm">
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select Category</option>
+                            <option value="Food">Food</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="name">Expense Name</label>
+                        <input type="text" id="name" name="name" required placeholder="Enter expense name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="amount">Amount ($)</label>
+                        <input type="number" id="amount" name="amount" step="0.01" required placeholder="0.00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date">Date</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+
+                    <!-- Food-specific fields -->
+                    <div id="foodFields" class="special-fields">
+                        <div class="form-group">
+                            <label for="mealType">Meal Type</label>
+                            <input type="text" id="mealType" name="mealType" placeholder="e.g., breakfast, lunch, dinner">
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input type="text" id="location" name="location" placeholder="e.g., restaurant name or city">
+                        </div>
+                    </div>
+
+                    <!-- Travel-specific fields -->
+                    <div id="travelFields" class="special-fields">
+                        <div class="form-group">
+                            <label for="transportMode">Transport Mode</label>
+                            <input type="text" id="transportMode" name="transportMode" placeholder="e.g., plane, bus, car">
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Destination</label>
+                            <input type="text" id="destination" name="destination" placeholder="e.g., city or country">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn">
+                        <i class="fas fa-plus"></i> Add Transaction
+                    </button>
+                </form>
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <h2><i class="fas fa-filter"></i> Filters</h2>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label for="filterCategory">Category</label>
+                        <select id="filterCategory">
+                            <option value="">All Categories</option>
+                            <option value="Food">Food</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterDate">Date</label>
+                        <input type="date" id="filterDate">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterName">Name</label>
+                        <input type="text" id="filterName" placeholder="Search by name">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="card statistics" id="statisticsCard">
+            <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+            <div class="stats-grid" id="statsGrid">
+                <!-- Statistics will be populated here -->
+            </div>
+            <div class="category-breakdown" id="categoryBreakdown">
+                <!-- Category breakdown will be populated here -->
+            </div>
+        </div>
+
+        <!-- Transactions List -->
+        <div class="card transactions-container">
+            <h2><i class="fas fa-list"></i> Transactions</h2>
+            <div id="transactionsContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading transactions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Transaction Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2><i class="fas fa-edit"></i> Edit Transaction</h2>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                
+                <div class="form-group">
+                    <label for="editName">Expense Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editAmount">Amount ($)</label>
+                    <input type="number" id="editAmount" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDate">Date</label>
+                    <input type="date" id="editDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editCategory">Category</label>
+                    <input type="text" id="editCategory" readonly>
+                </div>
+
+                <!-- Dynamic fields will be added here based on category -->
+                <div id="editSpecialFields"></div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification"></div>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+        // Show/hide special fields based on category
+        document.getElementById('category').addEventListener('change', function() {
+            const foodFields = document.getElementById('foodFields');
+            const travelFields = document.getElementById('travelFields');
+            
+            foodFields.style.display = 'none';
+            travelFields.style.display = 'none';
+            
+            if (this.value === 'Food') {
+                foodFields.style.display = 'block';
+            } else if (this.value === 'Travel') {
+                travelFields.style.display = 'block';
+            }
+        });
+
+        // Form submission
+        document.getElementById('transactionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                category: formData.get('category'),
+                name: formData.get('name'),
+                amount: parseFloat(formData.get('amount')),
+                date: formData.get('date')
+            };
+            
+            // Add special fields based on category
+            if (data.category === 'Food') {
+                data.meal_type = formData.get('mealType');
+                data.location = formData.get('location');
+            } else if (data.category === 'Travel') {
+                data.transport_mode = formData.get('transportMode');
+                data.destination = formData.get('destination');
+            }
+            
+            try {
+                const response = await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showNotification('Transaction added successfully!', 'success');
+                    this.reset();
+                    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+                    document.getElementById('foodFields').style.display = 'none';
+                    document.getElementById('travelFields').style.display = 'none';
+                    loadTransactions();
+                    loadStatistics();
+                } else {
+                    showNotification('Error: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Error adding transaction', 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        // Load transactions
+        async function loadTransactions() {
+            try {
+                const params = new URLSearchParams();
+                
+                const categoryFilter = document.getElementById('filterCategory').value;
+                const dateFilter = document.getElementById('filterDate').value;
+                const nameFilter = document.getElementById('filterName').value;
+                
+                if (categoryFilter) params.append('category', categoryFilter);
+                if (dateFilter) params.append('date', dateFilter);
+                if (nameFilter) params.append('name', nameFilter);
+                
+                const response = await fetch('/api/transactions?' + params);
+                const transactions = await response.json();
+                
+                displayTransactions(transactions);
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                document.getElementById('transactionsContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h3>Error loading transactions</h3>
+                        <p>Please try again later.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Display transactions
+        function displayTransactions(transactions) {
+            const container = document.getElementById('transactionsContainer');
+            
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-receipt"></i>
+                        <h3>No transactions found</h3>
+                        <p>Add your first transaction to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const transactionsHtml = transactions.map(transaction => {
+                const categoryIcon = getCategoryIcon(transaction.Category);
+                const specialInfo = getSpecialInfo(transaction);
+                
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-icon ${transaction.Category.toLowerCase()}">
+                            <i class="${categoryIcon}"></i>
+                        </div>
+                        <div class="transaction-details">
+                            <h3>${transaction.Name}</h3>
+                            <p>${transaction.Date} • ${transaction.Category}</p>
+                            ${specialInfo ? `<p><small>${specialInfo}</small></p>` : ''}
+                        </div>
+                        <div class="transaction-amount">$${parseFloat(transaction.Amount).toFixed(2)}</div>
+                        <div class="transaction-actions">
+                            <button class="btn btn-small" onclick="editTransaction('${transaction.ID}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-secondary btn-small" onclick="deleteTransaction('${transaction.ID}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = `<div class="transaction-grid">${transactionsHtml}</div>`;
+        }
+
+        // Get category icon
+        function getCategoryIcon(category) {
+            switch (category.toLowerCase()) {
+                case 'food': return 'fas fa-utensils';
+                case 'travel': return 'fas fa-plane';
+                default: return 'fas fa-shopping-cart';
+            }
+        }
+
+        // Get special info for display
+        function getSpecialInfo(transaction) {
+            if (transaction.MealType && transaction.Location) {
+                return `${transaction.MealType} at ${transaction.Location}`;
+            } else if (transaction.TransportMode && transaction.Destination) {
+                return `${transaction.TransportMode} to ${transaction.Destination}`;
+            }
+            return '';
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/api/statistics');
+                const stats = await response.json();
+                
+                displayStatistics(stats);
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Display statistics
+        function displayStatistics(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            const categoryBreakdown = document.getElementById('categoryBreakdown');
+            
+            statsGrid.innerHTML = `
+                <div class="stat-item">
+                    <h3>$${stats.total_amount.toFixed(2)}</h3>
+                    <p>Total Spent</p>
+                </div>
+                <div class="stat-item">
+                    <h3>${stats.transaction_count}</h3>
+                    <p>Transactions</p>
+                </div>
+                <div class="stat-item">
+                    <h3>$${stats.transaction_count > 0 ? (stats.total_amount / stats.transaction_count).toFixed(2) : '0.00'}</h3>
+                    <p>Average per Transaction</p>
+                </div>
+            `;
+            
+            const categoryHtml = Object.entries(stats.category_totals).map(([category, amount]) => `
+                <div class="category-item">
+                    <h4>${category}</h4>
+                    <p>$${amount.toFixed(2)}</p>
+                </div>
+            `).join('');
+            
+            categoryBreakdown.innerHTML = categoryHtml;
+        }
+
+        // Edit transaction
+        async function editTransaction(id) {
+            try {
+                const response = await fetch('/api/transactions');
+                const transactions = await response.json();
+                const transaction = transactions.find(t => t.ID === id);
+                
+                if (transaction) {
+                    document.getElementById('editId').value = transaction.ID;
+                    document.getElementById('editName').value = transaction.Name;
+                    document.getElementById('editAmount').value = transaction.Amount;
+                    document.getElementById('editDate').value = transaction.Date;
+                    document.getElementById('editCategory').value = transaction.Category;
+                    
+                    // Add special fields if they exist
+                    const specialFields = document.getElementById('editSpecialFields');
+                    specialFields.innerHTML = '';
+                    
+                    if (transaction.MealType !== undefined) {
+                        specialFields.innerHTML += `
+                            <div class="form-group">
+                                <label for="editMealType">Meal Type</label>
+                                <input type="text" id="editMealType" value="${transaction.MealType || ''}">
+                            </div>
+                        `;
+                    }
+                    
+                    if (transaction.Location !== undefined) {
+                        specialFields.innerHTML += `
+                            <div class="form-group">
+                                <label for="editLocation">Location</label>
+                                <input type="text" id="editLocation" value="${transaction.Location || ''}">
+                            </div>
+                        `;
+                    }
+                    
+                    if (transaction.TransportMode !== undefined) {
+                        specialFields.innerHTML += `
+                            <div class="form-group">
+                                <label for="editTransportMode">Transport Mode</label>
+                                <input type="text" id="editTransportMode" value="${transaction.TransportMode || ''}">
+                            </div>
+                        `;
+                    }
+                    
+                    if (transaction.Destination !== undefined) {
+                        specialFields.innerHTML += `
+                            <div class="form-group">
+                                <label for="editDestination">Destination</label>
+                                <input type="text" id="editDestination" value="${transaction.Destination || ''}">
+                            </div>
+                        `;
+                    }
+                    
+                    document.getElementById('editModal').style.display = 'block';
+                }
+            } catch (error) {
+                showNotification('Error loading transaction', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Delete transaction
+        async function deleteTransaction(id) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                try {
+                    const response = await fetch(`/api/transactions/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.status === 'success') {
+                        showNotification('Transaction deleted successfully!', 'success');
+                        loadTransactions();
+                        loadStatistics();
+                    } else {
+                        showNotification('Error: ' + result.message, 'error');
+                    }
+                } catch (error) {
+                    showNotification('Error deleting transaction', 'error');
+                    console.error('Error:', error);
+                }
+            }
+        }
+
+        // Edit form submission
+        document.getElementById('editForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const id = document.getElementById('editId').value;
+            const data = {
+                name: document.getElementById('editName').value,
+                amount: parseFloat(document.getElementById('editAmount').value),
+                date: document.getElementById('editDate').value,
+                category: document.getElementById('editCategory').value
+            };
+            
+            // Add special fields if they exist
+            const mealTypeField = document.getElementById('editMealType');
+            const locationField = document.getElementById('editLocation');
+            const transportModeField = document.getElementById('editTransportMode');
+            const destinationField = document.getElementById('editDestination');
+            
+            if (mealTypeField) data.meal_type = mealTypeField.value;
+            if (locationField) data.location = locationField.value;
+            if (transportModeField) data.transport_mode = transportModeField.value;
+            if (destinationField) data.destination = destinationField.value;
+            
+            try {
+                const response = await fetch(`/api/transactions/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    showNotification('Transaction updated successfully!', 'success');
+                    closeEditModal();
+                    loadTransactions();
+                    loadStatistics();
+                } else {
+                    showNotification('Error: ' + result.message, 'error');
+                }
+            } catch (error) {
+                showNotification('Error updating transaction', 'error');
+                console.error('Error:', error);
+            }
+        });
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filterCategory').value = '';
+            document.getElementById('filterDate').value = '';
+            document.getElementById('filterName').value = '';
+            loadTransactions();
+        }
+
+        // Filter event listeners
+        document.getElementById('filterCategory').addEventListener('change', loadTransactions);
+        document.getElementById('filterDate').addEventListener('change', loadTransactions);
+        document.getElementById('filterName').addEventListener('input', debounce(loadTransactions, 500));
+
+        // Debounce function for search input
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Modal close functionality
+        document.querySelector('.close').addEventListener('click', closeEditModal);
+        
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        });
+
+        // Load initial data
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTransactions();
+            loadStatistics();
+        });
+    </script>
+</body>
+</html>
