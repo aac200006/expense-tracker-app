@@ -278,10 +278,10 @@ def debug_info():
 def init_data():
     """Initialize the app with some sample data"""
     try:
-        # Create a few sample transactions
+        # Create a few sample transactions using only original categories
         sample_transactions = [
             FoodTransaction("Starbucks Coffee", 5.45, datetime.now().strftime("%Y-%m-%d"), "breakfast", "Downtown"),
-            Transaction("Netflix Subscription", 15.99, (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"), "Entertainment"),
+            Transaction("Gas Station", 45.00, (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"), "Other"),
             FoodTransaction("Lunch at Chipotle", 12.50, datetime.now().strftime("%Y-%m-%d"), "lunch", "Mall")
         ]
         
