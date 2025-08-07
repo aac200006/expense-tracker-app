@@ -629,7 +629,8 @@
                 
                 // Check if response is an error object
                 if (data.error) {
-                    throw new Error(data.message || data.error);
+                    console.error('Server error:', data);
+                    throw new Error(`Server error: ${data.message || data.error} (${data.type || 'Unknown'})`);
                 }
                 
                 const transactions = Array.isArray(data) ? data : [];

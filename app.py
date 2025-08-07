@@ -282,15 +282,24 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/test')
+def test():
+    return jsonify({"status": "App is working!", "timestamp": datetime.now().isoformat()})
+
+
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
     try:
+        print("=== DEBUG: get_transactions called ===")
         transactions = load_transactions()
+        print(f"=== DEBUG: Loaded {len(transactions)} transactions ===")
         
         # Apply filters if provided
         category_filter = request.args.get('category')
         date_filter = request.args.get('date')
         name_filter = request.args.get('name')
+        
+        print(f"=== DEBUG: Filters - category: {category_filter}, date: {date_filter}, name: {name_filter} ===")
         
         if category_filter:
             transactions = filter_transactions(transactions, 'category', category_filter)
@@ -299,10 +308,15 @@ def get_transactions():
         if name_filter:
             transactions = filter_transactions(transactions, 'name', name_filter)
         
+        print(f"=== DEBUG: After filtering: {len(transactions)} transactions ===")
+        print(f"=== DEBUG: Sample transaction: {transactions[0] if transactions else 'None'} ===")
+        
         return jsonify(transactions)
     except Exception as e:
         print(f"Error in get_transactions: {e}")
-        return jsonify({"error": "Failed to load transactions", "message": str(e)}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Failed to load transactions", "message": str(e), "type": type(e).__name__}), 500
 
 
 @app.route('/api/transactions', methods=['POST'])
