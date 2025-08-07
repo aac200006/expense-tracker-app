@@ -458,9 +458,14 @@
                         <input type="text" id="filterName" placeholder="Search by name">
                     </div>
                 </div>
-                <button type="button" class="btn btn-secondary" onclick="clearFilters()">
-                    <i class="fas fa-times"></i> Clear Filters
-                </button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="button" class="btn btn-secondary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                    <button type="button" class="btn" onclick="exportToPDF()" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -881,6 +886,43 @@
             document.getElementById('filterDate').value = '';
             document.getElementById('filterName').value = '';
             loadTransactions();
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            try {
+                showNotification('Generating PDF report...', 'success');
+                
+                // Get current filter values
+                const params = new URLSearchParams();
+                
+                const categoryFilter = document.getElementById('filterCategory').value;
+                const dateFilter = document.getElementById('filterDate').value;
+                const nameFilter = document.getElementById('filterName').value;
+                
+                if (categoryFilter) params.append('category', categoryFilter);
+                if (dateFilter) params.append('date', dateFilter);
+                if (nameFilter) params.append('name', nameFilter);
+                
+                // Create download link
+                const url = '/api/export-pdf?' + params.toString();
+                
+                // Create temporary link and trigger download
+                const link = document.createElement('a');
+                link.href = url;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                setTimeout(() => {
+                    showNotification('PDF report downloaded successfully!', 'success');
+                }, 1000);
+                
+            } catch (error) {
+                showNotification('Error generating PDF report', 'error');
+                console.error('PDF Export Error:', error);
+            }
         }
 
         // Filter event listeners
