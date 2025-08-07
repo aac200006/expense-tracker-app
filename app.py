@@ -6,7 +6,21 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 import os
 import io
 
-# PDF functionality temporarily removed for stability
+# PDF functionality - optional import
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.units import inch
+    PDF_AVAILABLE = True
+    print("PDF functionality available")
+except ImportError as e:
+    PDF_AVAILABLE = False
+    print(f"PDF functionality not available: {e}")
+except Exception as e:
+    PDF_AVAILABLE = False
+    print(f"PDF import error: {e}")
 
 app = Flask(__name__)
 
@@ -128,7 +142,97 @@ def get_statistics(transactions):
     }
 
 
-# PDF functionality temporarily removed for stability
+def generate_pdf_report(transactions):
+    """Generate a PDF report of transactions - only if PDF is available"""
+    if not PDF_AVAILABLE:
+        raise Exception("PDF functionality is not available")
+    
+    buffer = io.BytesIO()
+    
+    # Create the PDF document
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=18)
+    elements = []
+    
+    # Define styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        spaceAfter=30,
+        textColor=colors.HexColor('#667eea'),
+        alignment=1
+    )
+    
+    # Add title
+    title = Paragraph("Expense Tracker Report", title_style)
+    elements.append(title)
+    
+    # Add generation date
+    date_style = ParagraphStyle('DateStyle', parent=styles['Normal'], fontSize=12, textColor=colors.grey, alignment=1)
+    date_text = Paragraph(f"Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}", date_style)
+    elements.append(date_text)
+    elements.append(Spacer(1, 20))
+    
+    # Add statistics summary
+    stats = get_statistics(transactions)
+    summary_data = [
+        ['Total Transactions:', str(stats['transaction_count'])],
+        ['Total Amount:', f"${stats['total_amount']:.2f}"],
+        ['Average per Transaction:', f"${stats['total_amount']/max(stats['transaction_count'], 1):.2f}"]
+    ]
+    
+    summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f8f9fa')),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#667eea')),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.whitesmoke),
+    ]))
+    
+    elements.append(Paragraph("Summary", styles['Heading2']))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 20))
+    
+    # Add detailed transactions
+    if transactions:
+        elements.append(Paragraph("Detailed Transactions", styles['Heading2']))
+        
+        transaction_data = [['Date', 'Name', 'Category', 'Amount']]
+        
+        for t in transactions:
+            transaction_data.append([
+                t['Date'],
+                t['Name'][:30] + '...' if len(t['Name']) > 30 else t['Name'],
+                t['Category'],
+                f"${float(t['Amount']):.2f}"
+            ])
+        
+        transaction_table = Table(transaction_data, colWidths=[1.5*inch, 2.5*inch, 1.5*inch, 1.5*inch])
+        transaction_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#667eea')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('FONTSIZE', (0, 1), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8f9fa')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        
+        elements.append(transaction_table)
+    else:
+        elements.append(Paragraph("No transactions found.", styles['Normal']))
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
 
 
 # ----------------------------- Routes -----------------------------
@@ -260,7 +364,40 @@ def get_statistics_api():
 # Removed debug and sample data routes - back to original
 
 
-# PDF export removed
+@app.route('/api/export-pdf')
+def export_pdf():
+    try:
+        if not PDF_AVAILABLE:
+            return jsonify({"status": "error", "message": "PDF export is not available on this server"}), 503
+        
+        # Get filter parameters
+        category_filter = request.args.get('category')
+        date_filter = request.args.get('date')
+        name_filter = request.args.get('name')
+        
+        # Load and filter transactions
+        transactions = load_transactions()
+        
+        if category_filter:
+            transactions = filter_transactions(transactions, 'category', category_filter)
+        if date_filter:
+            transactions = filter_transactions(transactions, 'date', date_filter)
+        if name_filter:
+            transactions = filter_transactions(transactions, 'name', name_filter)
+        
+        # Generate PDF
+        pdf_buffer = generate_pdf_report(transactions)
+        
+        # Create response
+        response = make_response(pdf_buffer.read())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=expense_report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+        
+        return response
+        
+    except Exception as e:
+        print(f"PDF export error: {e}")
+        return jsonify({"status": "error", "message": f"PDF generation failed: {str(e)}"}), 500
 
 
 if __name__ == '__main__':
