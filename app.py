@@ -1,6 +1,6 @@
 import csv
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file, make_response
 import os
@@ -413,6 +413,31 @@ def debug_info():
         return jsonify(debug_info)
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
+@app.route('/api/init-data')
+def init_data():
+    """Initialize the app with some sample data"""
+    try:
+        # Create a few sample transactions
+        sample_transactions = [
+            FoodTransaction("Starbucks Coffee", 5.45, datetime.now().strftime("%Y-%m-%d"), "breakfast", "Downtown"),
+            Transaction("Netflix Subscription", 15.99, (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"), "Entertainment"),
+            FoodTransaction("Lunch at Chipotle", 12.50, datetime.now().strftime("%Y-%m-%d"), "lunch", "Mall")
+        ]
+        
+        # Save each transaction
+        for transaction in sample_transactions:
+            save_transaction(transaction)
+        
+        return jsonify({
+            "status": "success", 
+            "message": f"Created {len(sample_transactions)} sample transactions",
+            "transactions": len(load_transactions())
+        })
+        
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route('/api/export-pdf')
