@@ -382,6 +382,29 @@ def get_statistics_api():
     return jsonify(stats)
 
 
+@app.route('/api/debug')
+def debug_info():
+    """Debug endpoint to see what's happening with transactions"""
+    try:
+        import os
+        file_exists = os.path.exists(FILE_NAME)
+        file_size = os.path.getsize(FILE_NAME) if file_exists else 0
+        
+        transactions = load_transactions()
+        
+        debug_info = {
+            "file_exists": file_exists,
+            "file_size": file_size,
+            "transaction_count": len(transactions),
+            "transactions": transactions[:5],  # First 5 transactions only
+            "file_name": FILE_NAME
+        }
+        
+        return jsonify(debug_info)
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 @app.route('/api/export-pdf')
 def export_pdf():
     try:

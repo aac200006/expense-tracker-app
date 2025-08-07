@@ -625,8 +625,16 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                const transactions = await response.json();
+                const data = await response.json();
                 
+                // Check if response is an error object
+                if (data.error) {
+                    throw new Error(data.message || data.error);
+                }
+                
+                const transactions = Array.isArray(data) ? data : [];
+                
+                console.log('Loaded transactions:', transactions);
                 displayTransactions(transactions);
             } catch (error) {
                 console.error('Error loading transactions:', error);
