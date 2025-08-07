@@ -80,36 +80,25 @@ def load_transactions():
     try:
         print(f"=== load_transactions: Checking file {FILE_NAME} ===")
         
-        # Check if file exists, if not create it
-        if not os.path.exists(FILE_NAME):
-            print("=== File doesn't exist, creating empty file ===")
-            # Create empty CSV file with headers
-            with open(FILE_NAME, 'w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'Amount', 'Date', 'Category'])
-                writer.writeheader()
-            return transactions
-            
-        print(f"=== File exists, reading transactions ===")
         with open(FILE_NAME, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
-                # Skip empty rows
-                if row and any(row.values()):
-                    print(f"=== Found transaction: {row} ===")
+                print(f"=== Raw row: {row} ===")
+                if row and any(value.strip() for value in row.values() if value):
+                    print(f"=== Adding transaction: {row} ===")
                     transactions.append(row)
                     
-        print(f"=== Loaded {len(transactions)} transactions total ===")
+        print(f"=== Final result: {len(transactions)} transactions ===")
+        
+    except FileNotFoundError:
+        print("=== File not found, returning empty list ===")
+        return []
     except Exception as e:
-        print(f"Error loading transactions: {e}")
+        print(f"=== Error loading transactions: {e} ===")
         import traceback
         traceback.print_exc()
-        # Create empty CSV file with headers if there's any error
-        try:
-            with open(FILE_NAME, 'w', newline='') as file:
-                writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'Amount', 'Date', 'Category'])
-                writer.writeheader()
-        except Exception as create_error:
-            print(f"Error creating CSV file: {create_error}")
+        return []
+        
     return transactions
 
 
