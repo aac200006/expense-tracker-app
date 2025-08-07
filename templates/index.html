@@ -620,6 +620,11 @@
                 if (nameFilter) params.append('name', nameFilter);
                 
                 const response = await fetch('/api/transactions?' + params);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const transactions = await response.json();
                 
                 displayTransactions(transactions);
@@ -629,7 +634,10 @@
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle"></i>
                         <h3>Error loading transactions</h3>
-                        <p>Please try again later.</p>
+                        <p>This might be because there are no transactions yet. Try adding your first transaction!</p>
+                        <button class="btn" onclick="loadTransactions()" style="margin-top: 15px;">
+                            <i class="fas fa-refresh"></i> Try Again
+                        </button>
                     </div>
                 `;
             }
