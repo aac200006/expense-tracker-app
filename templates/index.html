@@ -601,6 +601,7 @@
 
         // Load transactions
         async function loadTransactions() {
+            console.log('loadTransactions called');
             try {
                 const params = new URLSearchParams();
                 
@@ -612,6 +613,7 @@
                 if (dateFilter) params.append('date', dateFilter);
                 if (nameFilter) params.append('name', nameFilter);
                 
+                console.log('Fetching:', '/api/transactions?' + params);
                 const response = await fetch('/api/transactions?' + params);
                 
                 if (!response.ok) {
@@ -619,6 +621,7 @@
                 }
                 
                 const transactions = await response.json();
+                console.log('Received transactions:', transactions);
                 
                 displayTransactions(transactions);
             } catch (error) {
@@ -637,7 +640,9 @@
         function displayTransactions(transactions) {
             const container = document.getElementById('transactionsContainer');
             
-            if (transactions.length === 0) {
+            console.log('displayTransactions called with:', transactions);
+            
+            if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-receipt"></i>
