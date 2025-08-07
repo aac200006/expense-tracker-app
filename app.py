@@ -78,22 +78,31 @@ def save_transaction(transaction):
 def load_transactions():
     transactions = []
     try:
+        print(f"=== load_transactions: Checking file {FILE_NAME} ===")
+        
         # Check if file exists, if not create it
         if not os.path.exists(FILE_NAME):
+            print("=== File doesn't exist, creating empty file ===")
             # Create empty CSV file with headers
             with open(FILE_NAME, 'w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=['ID', 'Name', 'Amount', 'Date', 'Category'])
                 writer.writeheader()
             return transactions
             
+        print(f"=== File exists, reading transactions ===")
         with open(FILE_NAME, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
                 # Skip empty rows
                 if row and any(row.values()):
+                    print(f"=== Found transaction: {row} ===")
                     transactions.append(row)
+                    
+        print(f"=== Loaded {len(transactions)} transactions total ===")
     except Exception as e:
         print(f"Error loading transactions: {e}")
+        import traceback
+        traceback.print_exc()
         # Create empty CSV file with headers if there's any error
         try:
             with open(FILE_NAME, 'w', newline='') as file:
@@ -145,21 +154,31 @@ def index():
 
 @app.route('/api/transactions', methods=['GET'])
 def get_transactions():
-    transactions = load_transactions()
+    try:
+        print("=== get_transactions called ===")
+        transactions = load_transactions()
+        print(f"=== Loaded {len(transactions)} transactions ===")
+        
+        # Apply filters if provided
+        category_filter = request.args.get('category')
+        date_filter = request.args.get('date')
+        name_filter = request.args.get('name')
+        
+        if category_filter:
+            transactions = filter_transactions(transactions, 'category', category_filter)
+        if date_filter:
+            transactions = filter_transactions(transactions, 'date', date_filter)
+        if name_filter:
+            transactions = filter_transactions(transactions, 'name', name_filter)
+        
+        print(f"=== Returning {len(transactions)} transactions ===")
+        return jsonify(transactions)
     
-    # Apply filters if provided
-    category_filter = request.args.get('category')
-    date_filter = request.args.get('date')
-    name_filter = request.args.get('name')
-    
-    if category_filter:
-        transactions = filter_transactions(transactions, 'category', category_filter)
-    if date_filter:
-        transactions = filter_transactions(transactions, 'date', date_filter)
-    if name_filter:
-        transactions = filter_transactions(transactions, 'name', name_filter)
-    
-    return jsonify(transactions)
+    except Exception as e:
+        print(f"=== ERROR in get_transactions: {e} ===")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Failed to load transactions", "message": str(e)}), 500
 
 
 @app.route('/api/transactions', methods=['POST'])
