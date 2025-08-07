@@ -5,11 +5,18 @@ from collections import defaultdict
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_file, make_response
 import os
 import io
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.units import inch
+
+# Try to import reportlab, but make it optional
+try:
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.units import inch
+    PDF_AVAILABLE = True
+except ImportError:
+    PDF_AVAILABLE = False
+    print("Warning: reportlab not available, PDF export will be disabled")
 
 app = Flask(__name__)
 
@@ -135,6 +142,9 @@ def get_statistics(transactions):
 
 def generate_pdf_report(transactions):
     """Generate a PDF report of transactions"""
+    if not PDF_AVAILABLE:
+        raise Exception("PDF generation is not available. Please install reportlab library.")
+    
     buffer = io.BytesIO()
     
     # Create the PDF document
@@ -408,6 +418,9 @@ def debug_info():
 @app.route('/api/export-pdf')
 def export_pdf():
     try:
+        if not PDF_AVAILABLE:
+            return jsonify({"status": "error", "message": "PDF export is temporarily unavailable"}), 503
+        
         # Get filter parameters
         category_filter = request.args.get('category')
         date_filter = request.args.get('date')

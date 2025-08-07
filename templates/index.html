@@ -905,7 +905,7 @@
         }
 
         // Export to PDF
-        function exportToPDF() {
+        async function exportToPDF() {
             try {
                 showNotification('Generating PDF report...', 'success');
                 
@@ -919,6 +919,18 @@
                 if (categoryFilter) params.append('category', categoryFilter);
                 if (dateFilter) params.append('date', dateFilter);
                 if (nameFilter) params.append('name', nameFilter);
+                
+                // Check if PDF service is available first
+                const response = await fetch('/api/export-pdf?' + params.toString());
+                
+                if (response.status === 503) {
+                    showNotification('PDF export is temporarily unavailable. Feature coming soon!', 'error');
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error('PDF generation failed');
+                }
                 
                 // Create download link
                 const url = '/api/export-pdf?' + params.toString();
@@ -936,7 +948,7 @@
                 }, 1000);
                 
             } catch (error) {
-                showNotification('Error generating PDF report', 'error');
+                showNotification('PDF export temporarily unavailable', 'error');
                 console.error('PDF Export Error:', error);
             }
         }
