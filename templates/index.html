@@ -618,17 +618,8 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                const data = await response.json();
+                const transactions = await response.json();
                 
-                // Check if response is an error object
-                if (data.error) {
-                    console.error('Server error:', data);
-                    throw new Error(`Server error: ${data.message || data.error} (${data.type || 'Unknown'})`);
-                }
-                
-                const transactions = Array.isArray(data) ? data : [];
-                
-                console.log('Loaded transactions:', transactions);
                 displayTransactions(transactions);
             } catch (error) {
                 console.error('Error loading transactions:', error);
@@ -636,13 +627,7 @@
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle"></i>
                         <h3>Error loading transactions</h3>
-                        <p>This might be because there are no transactions yet. Try adding your first transaction!</p>
-                        <button class="btn" onclick="loadTransactions()" style="margin-top: 15px; margin-right: 10px;">
-                            <i class="fas fa-refresh"></i> Try Again
-                        </button>
-                        <button class="btn" onclick="initializeData()" style="margin-top: 15px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
-                            <i class="fas fa-plus"></i> Create Sample Data
-                        </button>
+                        <p>Please try again later.</p>
                     </div>
                 `;
             }
@@ -901,75 +886,7 @@
             loadTransactions();
         }
 
-        // Initialize sample data
-        async function initializeData() {
-            try {
-                showNotification('Creating sample transactions...', 'success');
-                
-                const response = await fetch('/api/init-data');
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    showNotification('Sample data created successfully!', 'success');
-                    loadTransactions();
-                    loadStatistics();
-                } else {
-                    showNotification('Error: ' + result.message, 'error');
-                }
-            } catch (error) {
-                showNotification('Error creating sample data', 'error');
-                console.error('Error:', error);
-            }
-        }
-
-        // Export to PDF
-        async function exportToPDF() {
-            try {
-                showNotification('Generating PDF report...', 'success');
-                
-                // Get current filter values
-                const params = new URLSearchParams();
-                
-                const categoryFilter = document.getElementById('filterCategory').value;
-                const dateFilter = document.getElementById('filterDate').value;
-                const nameFilter = document.getElementById('filterName').value;
-                
-                if (categoryFilter) params.append('category', categoryFilter);
-                if (dateFilter) params.append('date', dateFilter);
-                if (nameFilter) params.append('name', nameFilter);
-                
-                // Check if PDF service is available first
-                const response = await fetch('/api/export-pdf?' + params.toString());
-                
-                if (response.status === 503) {
-                    showNotification('PDF export is temporarily unavailable. Feature coming soon!', 'error');
-                    return;
-                }
-                
-                if (!response.ok) {
-                    throw new Error('PDF generation failed');
-                }
-                
-                // Create download link
-                const url = '/api/export-pdf?' + params.toString();
-                
-                // Create temporary link and trigger download
-                const link = document.createElement('a');
-                link.href = url;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                setTimeout(() => {
-                    showNotification('PDF report downloaded successfully!', 'success');
-                }, 1000);
-                
-            } catch (error) {
-                showNotification('PDF export temporarily unavailable', 'error');
-                console.error('PDF Export Error:', error);
-            }
-        }
+        // PDF functionality removed
 
         // Filter event listeners
         document.getElementById('filterCategory').addEventListener('change', loadTransactions);

@@ -140,9 +140,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/test')
-def test():
-    return jsonify({"status": "App is working!", "timestamp": datetime.now().isoformat()})
+# Removed test route - back to original
 
 
 @app.route('/api/transactions', methods=['GET'])
@@ -251,57 +249,10 @@ def get_statistics_api():
     return jsonify(stats)
 
 
-@app.route('/api/debug')
-def debug_info():
-    """Debug endpoint to see what's happening with transactions"""
-    try:
-        import os
-        file_exists = os.path.exists(FILE_NAME)
-        file_size = os.path.getsize(FILE_NAME) if file_exists else 0
-        
-        transactions = load_transactions()
-        
-        debug_info = {
-            "file_exists": file_exists,
-            "file_size": file_size,
-            "transaction_count": len(transactions),
-            "transactions": transactions[:5],  # First 5 transactions only
-            "file_name": FILE_NAME
-        }
-        
-        return jsonify(debug_info)
-    except Exception as e:
-        return jsonify({"error": str(e)})
+# Removed debug and sample data routes - back to original
 
 
-@app.route('/api/init-data')
-def init_data():
-    """Initialize the app with some sample data"""
-    try:
-        # Create a few sample transactions using only original categories
-        sample_transactions = [
-            FoodTransaction("Starbucks Coffee", 5.45, datetime.now().strftime("%Y-%m-%d"), "breakfast", "Downtown"),
-            Transaction("Gas Station", 45.00, (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"), "Other"),
-            FoodTransaction("Lunch at Chipotle", 12.50, datetime.now().strftime("%Y-%m-%d"), "lunch", "Mall")
-        ]
-        
-        # Save each transaction
-        for transaction in sample_transactions:
-            save_transaction(transaction)
-        
-        return jsonify({
-            "status": "success", 
-            "message": f"Created {len(sample_transactions)} sample transactions",
-            "transactions": len(load_transactions())
-        })
-        
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route('/api/export-pdf')
-def export_pdf():
-    return jsonify({"status": "error", "message": "PDF export feature temporarily disabled for stability"}), 503
+# PDF export removed
 
 
 if __name__ == '__main__':
